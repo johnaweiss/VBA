@@ -94,3 +94,72 @@ Private Sub UserForm_Initialize()
 End Sub
 ```
 
+# Handler Excerpt
+```
+Option Explicit
+
+' ERROR HANDLING PROCEDURES
+' JOHN WEISS, DEVEOPER
+
+
+Sub RaiseErr()
+' re-raises current error object
+' needed by global error handler, after On Error GoTo
+' see modHandlerExamples
+     If Not ErrorState Then Exit Sub
+     
+     With Err
+          .Raise .Number, .Source, .Description
+     End With
+End Sub
+
+
+Function ErrorState() As Boolean
+     ErrorState = (Err <> 0)
+End Function
+
+
+Function Tween(dMin As Double, dVal As Double, dMax As Double) As Boolean
+' "Between" fx
+     Tween = (dMin < dVal) And (dVal < dMax)
+End Function
+
+
+Sub Handle_Error()
+' display alert with appropriate style and messages
+     ' determine correct alert-style based on error-number
+     If Not ErrorState Then Exit Sub
+     
+     Dim lAlertStyle As VbMsgBoxStyle
+     If IsCustomErrNum Then
+          ' custom error, convert to legal alert style
+          lAlertStyle = CAlertStyle
+     Else
+          ' unexpected or non-custom (system) error, assume fatal
+          lAlertStyle = vbCritical
+     End If
+     
+     ' display source only if unexpected fatal error
+     Dim sSrcMsg As String
+     sSrcMsg = IIf(lAlertStyle = vbCritical, "[" & Err.Source & "]" & vbNewLine, "")
+     
+     ' diplay alert
+     Msg sSrcMsg & Err.Description, lAlertStyle
+End Sub
+
+
+Function Msg(sBody As String, Optional lStyle As VbMsgBoxStyle = vbInformation, Optional sTitle As String)
+' simplifies alerts. Handles title and screen updating
+     ' determine title by lStyle
+     If (sTitle = vbNullString) Then sTitle = CAlertTitle(lStyle)
+     
+     ' get screen-updating, to restore after alert
+     Dim bUpdatingScreen As Boolean
+     bUpdatingScreen = Application.ScreenUpdating
+     
+     Application.ScreenUpdating = True
+     MsgBox sBody, lStyle, sTitle
+     Application.ScreenUpdating = bUpdatingScreen
+End Function
+```
+
